@@ -1,0 +1,25 @@
+{
+  "name": "moba",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "bundle": "browserify ./frontend/src/frontend.js -o ./frontend/bundle.js",
+    "watch": "watchify ./frontend/src/frontend.js -o ./frontend/bundle.js",
+    "json-server": "json-server --watch db.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitterulf/moba.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/bitterulf/moba/issues"
+  },
+  "homepage": "https://github.com/bitterulf/moba#readme",
+  "dependencies": {
+    "domready": "^1.0.8",
+    "mithril": "^1.1.6"
+  }
+}
