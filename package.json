@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/bitterulf/moba#readme",
   "dependencies": {
+    "blessed": "^0.1.81",
     "domready": "^1.0.8",
     "mithril": "^1.1.6",
     "ramda": "^0.25.0"
