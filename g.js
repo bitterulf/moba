@@ -1,70 +1,187 @@
 var blessed = require('blessed');
 
+var fetcher = require('./fetcher');
+
+var EOL = require('os').EOL;
+
+const open = require('open');
+
 // Create a screen object.
 var screen = blessed.screen({
   smartCSR: true
 });
 
-screen.title = 'my window title';
+screen.title = 'tool';
 
-// Create a box perfectly centered horizontally and vertically.
-var box = blessed.box({
-  top: '5%',
+var resultBox = blessed.box({
+  top: '0',
   right: '0',
-  width: '50%',
-  height: '45%',
-  content: 'Hello {bold}world{/bold}!',
+  width: '75%',
+  height: '100%',
+  content: '',
   tags: true,
   border: {
-    type: 'line'
-  },
-  style: {
-    fg: 'white',
-    bg: 'magenta',
-    border: {
-      fg: '#f0f0f0'
-    },
-    hover: {
-      bg: 'green'
-    }
+      ch: '°'
   }
 });
 
-screen.append(box);
+screen.append(resultBox);
 
-var box2 = blessed.box({
+var list = blessed.List({
   top: '0',
   left: '0',
-  width: '50%',
+  width: '24%',
   height: '50%',
-  content: 'Hello {bold}world{/bold}!',
-  tags: true,
   border: {
-    type: 'line'
+      ch: '°'
   },
+  items: [
+      'ign top games',
+      'rss',
+      'open',
+  ],
+  interactive: true,
+  mouse: true,
   style: {
-    fg: 'white',
-    bg: 'magenta',
-    border: {
-      fg: '#f0f0f0'
+    selected: {
+        bg: 'white',
+        fg: 'black',
+    }
+  },
+})
+
+screen.append(list);
+
+list.on('select', function(data) {
+    if (data.content === 'ign top games') {
+        resultBox.setContent('{bold}loading{/bold}');
+        screen.render();
+        fetcher.fetchTopGames(function(err, result) {
+            if (err) {
+                resultBox.setContent('{bold}Error!{/bold}');
+                screen.render();
+            }
+            else {
+                resultBox.setContent('{bold}'+result.title+'{/bold}'+':'+EOL+result.items.map(function(item) { return item.title}).join(EOL) );
+                screen.render();
+            }
+        });
+    }
+    else if (data.content === 'rss') {
+        resultBox.setContent('{bold}loading{/bold}');
+        screen.render();
+        fetcher.fetchRss(function(err, result) {
+            if (err) {
+                resultBox.setContent('{bold}Error!{/bold}');
+                screen.render();
+            }
+            else {
+                resultBox.setContent('{bold}'+result.title+'{/bold}'+':'+EOL+result.items.map(function(item) { return item.title}).join(EOL) );
+                screen.render();
+            }
+        });
+    }
+    else if (data.content === 'open') {
+        open("http://www.google.com");
+    }
+})
+
+
+var form = blessed.form({
+  parent: screen,
+  keys: true,
+  left: 0,
+  bottom: 0,
+  width: 30,
+  height: 8,
+  bg: 'green',
+  bottom: '0',
+  left: '0',
+  border: {
+      ch: '°'
+  },
+});
+
+var text = blessed.textbox({
+    parent: form,
+    value: '',
+    name: 'text',
+    inputOnFocus: true,
+});
+
+text.focus();
+
+var submit = blessed.button({
+  parent: form,
+  mouse: true,
+  keys: true,
+  shrink: true,
+  padding: {
+    left: 1,
+    right: 1
+  },
+  left: 10,
+  top: 2,
+  shrink: true,
+  name: 'submit',
+  content: 'submit',
+  style: {
+    bg: 'blue',
+    focus: {
+      bg: 'red'
     },
     hover: {
-      bg: 'green'
+      bg: 'red'
     }
   }
 });
 
-screen.append(box2);
+var cancel = blessed.button({
+  parent: form,
+  mouse: true,
+  keys: true,
+  shrink: true,
+  padding: {
+    left: 1,
+    right: 1
+  },
+  left: 20,
+  top: 2,
+  shrink: true,
+  name: 'cancel',
+  content: 'cancel',
+  style: {
+    bg: 'blue',
+    focus: {
+      bg: 'red'
+    },
+    hover: {
+      bg: 'red'
+    }
+  }
+});
 
-box.on('click', function(data) {
-  box.setContent('{center}Some different {red-fg}content{/red-fg}.{/center}');
-  screen.render();
+submit.on('press', function(data) {
+  form.submit();
+});
+
+cancel.on('press', function() {
+  form.reset();
+});
+
+form.on('submit', function(data) {
+  resultBox.setContent('{bold}'+data.text+'{/bold}');
+  form.reset();
+
+    form.destroy();
+    text.destroy();
+    submit.destroy();
+    cancel.destroy();
+    screen.render();
 });
 
 screen.key(['escape', 'q', 'C-c'], function(ch, key) {
   return process.exit(0);
 });
-
-box.focus();
 
 screen.render();
